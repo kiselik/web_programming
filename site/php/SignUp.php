@@ -46,7 +46,7 @@ if (isset($data['do_signup'])) # если клавиша "зарегестрир
     <fieldset> <!-- заставим форму выглядеть как блок-->
         <strong>Логин: </strong>
         <input type="text" name="username" required value="<?php
-        echo @$data['username']; ?>"> <br>
+        echo @$data['username']; ?>"> <br> # value нужно для того, чтобы при различных ползовательских ошибках правильные поля не приходилось вводить еще раз
         <strong>E-mail: </strong>
         <input type="email" name="mail" required value="<?php
         echo @$data['mail']; ?>"/> <br>
