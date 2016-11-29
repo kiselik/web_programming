@@ -9,63 +9,39 @@
 <body>
 
 <?php
-$link = mysqli_connect('localhost', 'root', 'root')or die('Ошибка соединения: ' . mysqli_error());
+require_once 'Database.php';
+require_once 'Registration.php';
 
-echo 'Успешно соединились';
-$data = $_POST;
-if (isset($data['do_signup'])) # если клавиша "зарегестрировать была нажата, то проведем процесс регистрации
+$data = new Registration($_POST);
+if (isset($_POST['do_signup'])) # если клавиша "зарегестрировать была нажата, то проведем процесс регистрации
 {
-    $errors = array(); # проверим на пользовательские ошибки. Если они есть положим в этот массив
-    if (trim($data['username']) == '') # trim-функция, обрезающая лишние пробелы
-    {
-        $data['username']='';
-        $errors[] = "Введите корректный логин!";
-    }
-    if (trim($data['password']) == '')
-    {
-        $data['password']='';
-        $data['password_repeat']='';
-        $errors[] = "Введите пароль!";
-    }
-    if ($data['password'] != $data['password_repeat']) {
-        $errors[] = "Пароли не совпадают!";
-    }
-    if (empty($errors)) {
-        //процесс записи данных в бд, но его пока нет
+    if ($data->Check_Data()) { # проверяем, корректны ли введены данные, если да, то повезло, работаем дальше
+        echo "Ура, Работаем";
+        $db = new Database();
 
     } else {
-        echo '<h1>' . array_shift($errors) . '</h1>'; # берем первый элемент массива, показываем и изымаем
+        echo '<h1>' . $data->Get_Errors() . '</h1>'; # берем первый элемент массива, показываем и изымаем
     }
-
-
 }
-
 ?>
 <h2>Ура! пора регистрироваться</h2>
 <form method="post" action="site/php/SignUp.php" id="LOGIN">
     <fieldset> <!-- заставим форму выглядеть как блок-->
         <strong>Логин: </strong>
         <input type="text" name="username" required value="<?php
-        echo @$data['username']; ?>"> <br> # value нужно для того, чтобы при различных ползовательских ошибках правильные поля не приходилось вводить еще раз
+        echo @$data->Get_Username(); ?>"> <br>
+        <!-- value нужно для того, чтобы при различных ползовательских ошибках правильные поля не приходилось вводить еще раз-->
         <strong>E-mail: </strong>
         <input type="email" name="mail" required value="<?php
-        echo @$data['mail']; ?>"/> <br>
+        echo @$data->Get_EMail(); ?>"/> <br>
         <strong>Пароль:</strong>
         <input type="password" name="password" value="<?php
-        echo @$data['password']; ?>""><br>
+        echo @$data->Get_Password(); ?>""><br>
         <strong>Еще раз пароль:</strong>
-        <input type="password" name="password_repeat" value="<?php
-        echo @$data['password_repeat']; ?>""><br>
+        <input type="password" name="password_repeat" > <br> <!-- если в процессе регистрации пошло что-то не так, сорри,
+                                                            придется подтвердить пароль еще раз. Обещаю подумать над этим пунктом-->
     </fieldset>
-    <fieldset>
-        Имя:
-        <input type="text" name="first_name"><br>
-        Фамилия:
-        <input type="text" name="last_name"/><br>
-        Пол:
-        <input type="radio" name="gender" value="female" checked> Male
-        <input type="radio" name="gender" value="male"> Female<br>
-    </fieldset>
+
     <button type="submit" name="do_signup">Зарегистрироваться</button>
 
 </form>
