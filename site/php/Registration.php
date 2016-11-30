@@ -6,21 +6,22 @@
  * Date: 30.11.2016
  * Time: 0:39
  */
+require_once 'Database.php';
 class Registration
 {
     private $local_data, $errors, $flag = false;
+    private $db;
 
     public function __construct(array $data)
     {
         if (isset($data['do_signup'])) # если клавиша "зарегестрировать была нажата, то проведем процесс регистрации
         {
             $this->local_data = $data;
-            //$data=array();
 
             $this->errors = array(); # проверим на пользовательские ошибки. Если они есть положим в этот массив
-
         }
     }
+
     public function Check_Data()
     {
         $this->Check_Username(); # чекаем логин
@@ -80,6 +81,13 @@ class Registration
     public function Get_Errors()
     { # из всего массива ошибок выводит на экран только первую ошибку, поясняющую, что нужно исправить
         return (array_shift($this->errors));
+    }
+
+    public function Add_User()
+    {
+        $this->db=new Database();
+        $this->db->Add_User($this->local_data);
+
     }
 
 }

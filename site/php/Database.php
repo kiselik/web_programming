@@ -26,24 +26,36 @@ class Database
         // может быть здесь место для проверки
         $this->local_opt = array_merge($this->defaults, $opt); # мержим два массива
 
-        //var_dump( $this->local_opt);
+        @$this->conn = new mysqli($this->local_opt['host'], $this->local_opt['user'], $this->local_opt['pass'], $this->local_opt['db']);
 
-        $this->openConnection();
-
-    }
-
-    private function openConnection() # процедура посоединения к бд
-    {
-        @$this->conn = mysqli_connect($this->local_opt['host'], $this->local_opt['user'], $this->local_opt['pass'], $this->local_opt['db']);
-        if (!$this->conn) die('Ошибка соединения с MYSQL: ошибка № '.mysqli_connect_errno()." " . mysqli_connect_error());
+        if (!$this->conn) die('Ошибка соединения с MYSQL: ошибка № ' . $this->conn->connect_errno . " " . $this->conn->connect_errno);
         echo 'Успешно соединились';
     }
 
-    public function Add_User(array $date)
+
+    public function Add_User(array $data)
     {
-
-
+        //var_dump($this->conn);
+        /* подготавливаемый запрос, первая стадия: подготовка */
+        //$this->conn->stmt_init();
+        var_dump($data);
+        $stmt = $this->conn->prepare("INSERT INTO users (login,pass) VALUES (?,?)");
+        if (!$stmt) {
+            echo('Не удалось подготовить запрос: Ошибка № ' .$stmt->errno . " " . $stmt->error);
+        }
+        /* подготавливаемый запрос, вторая стадия: привязка и выполнение */
+        if (!$stmt->bind_param('ss', $data['username'],$data['password']))
+            {
+            echo "Не удалось привязать параметры: (" . $stmt->errno . ") " . $stmt->error;
     }
 
+        if (!$stmt->execute()) {
+            echo "Не удалось выполнить запрос: (" . $stmt->errno . ") " . $stmt->error;
+        }
+        else{ echo "tip vse rabotaet";}
+
+        /* рекомендуется явно закрывать запросы */
+        $stmt->close();
+    }
 
 }

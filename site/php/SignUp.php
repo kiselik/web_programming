@@ -9,15 +9,16 @@
 <body>
 
 <?php
-require_once 'Database.php';
-require_once 'Registration.php';
+
+require_once "Registration.php";
 
 $data = new Registration($_POST);
+
 if (isset($_POST['do_signup'])) # если клавиша "зарегестрировать была нажата, то проведем процесс регистрации
 {
     if ($data->Check_Data()) { # проверяем, корректны ли введены данные, если да, то повезло, работаем дальше
         echo "Ура, Работаем";
-        $db = new Database();
+        $data->Add_User(); # добавляем пользователя в бд
 
     } else {
         echo '<h1>' . $data->Get_Errors() . '</h1>'; # берем первый элемент массива, показываем и изымаем
