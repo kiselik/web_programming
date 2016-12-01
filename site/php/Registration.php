@@ -7,6 +7,7 @@
  * Time: 0:39
  */
 require_once 'Database.php';
+
 class Registration
 {
     private $local_data, $errors, $flag = false;
@@ -26,8 +27,6 @@ class Registration
     {
         $this->Check_Username(); # чекаем логин
         $this->Check_Password(); # чекаем пароль
-        /*var_dump(empty($this->errors));
-        echo"errors1 <br>";*/
         if (empty($this->errors)) { # если наконец-то все правильно ввели даем добро на регистрацию
             $this->flag = true;
 
@@ -85,8 +84,9 @@ class Registration
 
     public function Add_User()
     {
-        $this->db=new Database();
+        $this->db = new Database();
         $this->db->Add_User($this->local_data);
+        $this->db->Close();
 
     }
 
