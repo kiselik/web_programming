@@ -18,8 +18,8 @@ class Registration
         if (isset($data['do_signup'])) # если клавиша "зарегестрировать была нажата, то проведем процесс регистрации
         {
             $this->local_data = $data;
-
             $this->errors = array(); # проверим на пользовательские ошибки. Если они есть положим в этот массив
+
         }
     }
 
@@ -28,6 +28,9 @@ class Registration
         $this->Check_Username(); # чекаем логин
         $this->Check_Password(); # чекаем пароль
         if (empty($this->errors)) { # если наконец-то все правильно ввели даем добро на регистрацию
+            $this->local_data['password']=password_hash($this->local_data['password'], PASSWORD_DEFAULT);
+
+            unset($this->local_data['password_repeat']);
             $this->flag = true;
 
         } else {
@@ -85,7 +88,14 @@ class Registration
     public function Add_User()
     {
         $this->db = new Database();
+       /* echo" check <br>";
+        var_dump($this->local_data);*/
         $this->db->Add_User($this->local_data);
+
+       /* unset($this->local_data);
+        echo" check2 <br>";
+        var_dump($this->local_data);*/
+
         $this->db->Close();
 
     }

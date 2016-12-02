@@ -28,7 +28,6 @@ class Database
     public function Add_User(array $data)
     {
         $flag = $this->Check_login($data['username']); # проверяем, есть ли в бд такой логин
-        #var_dump($flag);
         if (!$flag) { //если нет такого логина, то записываем в бд
 
             $stmt = $this->conn->prepare("INSERT INTO users (login,pass) VALUES (?,?)");
@@ -39,9 +38,16 @@ class Database
             if (!$stmt->bind_param('ss', $data['username'], $data['password'])) {
                 echo("Не удалось привязать параметры: (" . $stmt->errno . ") " . $stmt->error);
             } else {
-                $stmt->execute(); # выполняем запрос
-                $stmt->store_result();# сохраняем результаты
-                $stmt->close(); # закрываем запрос
+                if (!$stmt->execute()) # выполняем запрос
+                {
+                    echo "ошибка" . $stmt->errno . " " . $stmt->error;
+                } else {
+
+                    $stmt->store_result();# сохраняем результаты
+                    echo "успех <br>";
+                    $stmt->close(); # закрываем запрос
+                    unset($data);
+                }
             }
         } else {
 
@@ -66,9 +72,9 @@ class Database
             $stmt->store_result(); # сохраняем результаты
             $res = $stmt->num_rows; # считаем количество строчек, найденных при запросе
             #var_dump($res); # это была проверка
-
+            $stmt->close(); # закрываем запрос
         }
-        $stmt->close(); # закрываем запрос
+
         return $res;
     }
 
