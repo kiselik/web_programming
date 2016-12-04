@@ -8,7 +8,7 @@
  */
 class Database
 {
-    private $local_opt, $conn, $db_errors;
+    private $local_opt, $conn, $db_errors, $result_data;
     private $defaults = array(
         'host' => 'localhost',
         'user' => 'root',
@@ -21,6 +21,7 @@ class Database
         $this->local_opt = array_merge($this->defaults, $opt); # мержим два массива
 
         $this->db_errors = array();
+        $this->result_data=array();
 
         @$this->conn = new mysqli($this->local_opt['host'], $this->local_opt['user'], $this->local_opt['pass'], $this->local_opt['db']);
 
@@ -32,8 +33,9 @@ class Database
         # проверяем, есть ли в бд такой логин
         $flag = $this->Check_username($data['username']);
 
-        # если нет, то записываем в бд
-        if (!$flag) {
+        # если количество найденных в бд записей с выбранным логином ноль, т.е. такого пользователя еще нет...
+        if (!$this->result_data['count']) {
+            # вставим его в бд
             # подготовка запроса
             $stmt = $this->conn->prepare("INSERT INTO users (login,pass) VALUES (?,?)");
 
@@ -47,7 +49,6 @@ class Database
             } else {
 
                 $stmt->store_result();# сохраняем результаты
-                //echo "успех <br>";
                 $stmt->close(); # закрываем запрос
             }
         } else {
@@ -57,10 +58,8 @@ class Database
 
     }
 
-    private function Check_username(string $login)
+    final public function Check_username(string $login)
     {
-        $res = 0;
-
         # подготовка запроса
         # mysql> SELECT * FROM [table name] WHERE [field name] = "whatever"
         $stmt = $this->conn->prepare("SELECT * FROM users WHERE login=? ");
@@ -75,34 +74,25 @@ class Database
         } else {
 
             $stmt->store_result();# сохраняем результаты
-            //echo "успех <br>";
-            $res = $stmt->num_rows; # считаем количество строчек, найденных при запросе
-            $stmt->close(); # закрываем запрос
+
+            # Определить переменные для записи результата
+            $stmt->bind_result($this->result_data['count'],$this->result_data['username'],$this->result_data['password']);
+
+            # получить найденные значения
+            $stmt->fetch();
+
+            # закрываем запрос
+            $stmt->close();
         }
-        return $res;
     }
 
-    public  function Check_login(array $data)
+    public  function Get_Password_SQL()
     {
-        $res=0;
-        # подготовка запроса
-        # mysql> SELECT * FROM [table name] WHERE [field name] = "whatever"
-        $stmt = $this->conn->prepare("SELECT * FROM users WHERE login=? and pass=? ");
-
-        # вторая стадия: привязка параметров
-        $stmt->bind_param('ss', $data['username'],$data['password']);
-
-        # выполнение запроса
-        if (!$stmt->execute()) # выполняем запрос
-        {
-            $this->db_errors[] = "ошибка выполнения запроса" . $stmt->errno . " " . $stmt->error;
-        } else {
-            $stmt->store_result();# сохраняем результаты
-            $res = $stmt->num_rows; # считаем количество строчек, найденных при запросе
-            $stmt->close(); # закрываем запрос
-        }
-        return $res;
-
+        return($this->result_data['password']);
+    }
+    public  function Get_Count_SQL()
+    {
+        return($this->result_data['count']);
     }
 
     public

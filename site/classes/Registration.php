@@ -15,18 +15,20 @@ class Registration
 
     public function __construct(array $data)
     {
+        if (isset($_POST['do_signup'])) {
             $this->local_data = $data;
             $this->errors = array(); # проверим на пользовательские ошибки. Если они есть положим в этот массив
+        }
     }
 
-    public function Check_Data()
+    private function Check_Data()
     {
         $flag = false;
         $this->Check_Username(); # чекаем логин
         $this->Check_Password(); # чекаем пароль
         if (empty($this->errors)) { # если наконец-то все правильно ввели даем добро на регистрацию
 
-            $this->local_data['password']=password_hash($this->local_data['password'], PASSWORD_DEFAULT);
+            $this->local_data['password'] = password_hash($this->local_data['password'], PASSWORD_DEFAULT);
             unset($this->local_data['password_repeat']);
             $flag = true;
 
@@ -55,7 +57,7 @@ class Registration
         }
     }
 
-   public function Get_Username()
+    public function Get_Username()
     {
         return ($this->local_data['username']);
     }
@@ -70,24 +72,26 @@ class Registration
         return (array_shift($this->errors));
     }
 
-    public function Add_User()
+   final public function Add_User()
     {
-        $flag=false;
-        $this->db = new Database();
-       /* echo" check <br>";
-        var_dump($this->local_data);*/
-        $this->db->Add_User($this->local_data);
-        if (empty($this->db->Get_Errors())) { # если наконец-то все правильно ввели даем добро на регистрацию
+        $flag = false;
+# если данные ведены корректно
+        if ($this->Check_Data()) {
 
-            $flag=true;
-            echo "Ура, успешно зарегестрированы. Скоро здесь будет редирект";
-            unset($this->local_data);
-            $this->db->Close();
-        }
-        else
-            {
-                $this->errors+= $this->db->Get_Errors();
+            # начинаем работу с бд
+            $this->db = new Database();
+            #  вызываем метод добавления юзера
+            $this->db->Add_User($this->local_data);
+            # если в этом процессе не нашлось ошибок, то класс, пишем поздавляшки
+            if (empty($this->db->Get_Errors())) { # если наконец-то все правильно ввели даем добро на регистрацию
+
+                $flag = true;
+                unset($this->local_data);
+                $this->db->Close();
+            } else { # если нет, то выводим сообщеньку
+                $this->errors += $this->db->Get_Errors();
             }
+        }
         return ($flag);
     }
 

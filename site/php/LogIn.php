@@ -10,18 +10,26 @@
 
 <?php
 
-require_once "Entry.php";
+require_once "../classes/Entry.php";
+
 
 $data_lg = new Entry($_POST);
-echo "1<br>";
-var_dump($data_lg);
 if (isset($_POST['do_login'])) # если клавиша "зарегестрировать была нажата, то проведем процесс регистрации
 {
-    if ((!$data_lg->Check_Data()) || (!$data_lg->LOGIN_User())) { # проверяем, корректны ли введены данные, если да, то повезло, работаем дальше
-        echo "I am here";
+    unset($_POST);
+    # если есть косяки
+    if (!$data_lg->LOGIN_User()) {
+
         # посмотрим первую замеченную ошибку
         echo '<h1>' . $data_lg->Get_Errors() . '</h1>';
     }
+    else
+        {
+            session_start();
+            $_SESSION['user']=$data_lg->Get_Login();
+            echo '<h1> Вы авторизованы!<br> Можете перейти на <a href="site/php/Start_Page.php"> главную</a> страницу</h1>';
+
+        }
 }
 ?>
 <h2>Ура! пора авторизоваться</h2>

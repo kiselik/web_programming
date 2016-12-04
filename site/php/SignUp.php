@@ -10,19 +10,20 @@
 
 <?php
 
-require_once "Registration.php";
+require_once "../classes/Registration.php";
 
 $data = new Registration($_POST);
 if (isset($_POST['do_signup'])) # если клавиша "зарегестрировать была нажата, то проведем процесс регистрации
 {
-
-    if ((!$data->Check_Data()) ||(!$data->Add_User())) { # проверяем, корректны ли введены данные, если да, то повезло, работаем дальше
+    unset($_POST);
+    # если есть косяки
+    if (!$data->Add_User()) {
         # посмотрим первую замеченную ошибку
         echo '<h1>' . $data->Get_Errors() . '</h1>';
     }
     else
-        {
-            $SESSION_START=
+        { # если нет косяков, порадуемся
+            echo '<h1> Вы зарегестрированы!<br> Можете перейти на <a href="site/php/Start_Page.php"> главную</a> страницу</h1>';
         }
 }
 ?>
