@@ -8,7 +8,7 @@
  */
 class Database
 {
-    private $local_opt, $conn;
+    private $local_opt, $conn, $db_errors;
     private $defaults = array(
         'host' => 'localhost',
         'user' => 'root',
@@ -20,6 +20,8 @@ class Database
     {
         $this->local_opt = array_merge($this->defaults, $opt); # мержим два массива
 
+        $this->db_errors = array();
+
         @$this->conn = new mysqli($this->local_opt['host'], $this->local_opt['user'], $this->local_opt['pass'], $this->local_opt['db']);
 
         if (!$this->conn) die($this->errors = 'Ошибка соединения с MYSQL: ошибка № ' . $this->conn->connect_errno . " " . $this->conn->connect_errno);
@@ -27,58 +29,92 @@ class Database
 
     public function Add_User(array $data)
     {
-        $flag = $this->Check_login($data['username']); # проверяем, есть ли в бд такой логин
-        if (!$flag) { //если нет такого логина, то записываем в бд
+        # проверяем, есть ли в бд такой логин
+        $flag = $this->Check_username($data['username']);
 
+        # если нет, то записываем в бд
+        if (!$flag) {
+            # подготовка запроса
             $stmt = $this->conn->prepare("INSERT INTO users (login,pass) VALUES (?,?)");
-            if (!$stmt) {
-                echo('Не удалось подготовить запрос: Ошибка № ' . $stmt->errno . " " . $stmt->error);
-            }
-            /* подготавливаемый запрос, вторая стадия: привязка и выполнение */
-            if (!$stmt->bind_param('ss', $data['username'], $data['password'])) {
-                echo("Не удалось привязать параметры: (" . $stmt->errno . ") " . $stmt->error);
-            } else {
-                if (!$stmt->execute()) # выполняем запрос
-                {
-                    echo "ошибка" . $stmt->errno . " " . $stmt->error;
-                } else {
 
-                    $stmt->store_result();# сохраняем результаты
-                    echo "успех <br>";
-                    $stmt->close(); # закрываем запрос
-                    unset($data);
-                }
+            # вторая стадия: привязка параметров
+            $stmt->bind_param('ss', $data['username'], $data['password']);
+
+            # выполнение запроса
+            if (!$stmt->execute()) # выполняем запрос
+            {
+                $this->db_errors[] = "ошибка" . $stmt->errno . " " . $stmt->error;
+            } else {
+
+                $stmt->store_result();# сохраняем результаты
+                //echo "успех <br>";
+                $stmt->close(); # закрываем запрос
             }
         } else {
 
-            echo "Пользователь с таким логином уже существует!";
+            $this->db_errors[] = "Пользователь с таким логином уже существует!";
         }
 
     }
 
-    public function Check_login(string $login)
+    private function Check_username(string $login)
     {
-        $res = -1;
+        $res = 0;
+
+        # подготовка запроса
         # mysql> SELECT * FROM [table name] WHERE [field name] = "whatever"
         $stmt = $this->conn->prepare("SELECT * FROM users WHERE login=? ");
-        if (!$stmt) {
-            echo('Не удалось подготовить запрос: Ошибка № ' . $stmt->errno . " " . $stmt->error);
-        }
-        /* подготавливаемый запрос, вторая стадия: привязка и выполнение */
-        if (!$stmt->bind_param('s', $login)) {
-            echo "Не удалось привязать параметры: (" . $stmt->errno . ") " . $stmt->error;
+
+        # вторая стадия: привязка параметров
+        $stmt->bind_param('s', $login);
+
+        # выполнение запроса
+        if (!$stmt->execute()) # выполняем запрос
+        {
+            $this->db_errors[] = "ошибка выполнения запроса" . $stmt->errno . " " . $stmt->error;
         } else {
-            $stmt->execute(); # выполняем запрос
-            $stmt->store_result(); # сохраняем результаты
+
+            $stmt->store_result();# сохраняем результаты
+            //echo "успех <br>";
             $res = $stmt->num_rows; # считаем количество строчек, найденных при запросе
-            #var_dump($res); # это была проверка
             $stmt->close(); # закрываем запрос
         }
-
         return $res;
     }
 
-    public function Close()
+    public  function Check_login(array $data)
+    {
+        $flag=false;
+
+        # подготовка запроса
+        # mysql> SELECT * FROM [table name] WHERE [field name] = "whatever"
+        $stmt = $this->conn->prepare("SELECT * FROM users WHERE login=? and pass=? ");
+
+        # вторая стадия: привязка параметров
+        $stmt->bind_param('ss', $data['username'],$data['password']);
+
+        # выполнение запроса
+        if (!$stmt->execute()) # выполняем запрос
+        {
+            $this->db_errors[] = "ошибка выполнения запроса" . $stmt->errno . " " . $stmt->error;
+        } else {
+
+            $flag=true;
+            $stmt->store_result();# сохраняем результаты
+            $stmt->close(); # закрываем запрос
+        }
+        return $flag;
+
+    }
+
+    public
+    function Get_Errors()
+    {
+        return ($this->db_errors);
+    }
+
+    public
+    function Close()
     {
         $this->conn->close(); # закрываем соединение с MYSQL
     }

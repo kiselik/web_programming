@@ -10,7 +10,7 @@ require_once 'Database.php';
 
 class Registration
 {
-    private $local_data, $errors, $flag = false;
+    private $local_data, $errors;
     private $db;
 
     public function __construct(array $data)
@@ -25,18 +25,17 @@ class Registration
 
     public function Check_Data()
     {
+        $flag = false;
         $this->Check_Username(); # чекаем логин
         $this->Check_Password(); # чекаем пароль
         if (empty($this->errors)) { # если наконец-то все правильно ввели даем добро на регистрацию
-            $this->local_data['password']=password_hash($this->local_data['password'], PASSWORD_DEFAULT);
 
+            $this->local_data['password']=password_hash($this->local_data['password'], PASSWORD_DEFAULT);
             unset($this->local_data['password_repeat']);
             $this->flag = true;
 
-        } else {
-            $this->flag = false;
         }
-        return ($this->flag);
+        return ($flag);
     }
 
     private function Check_Username() # можно добавить проверку на наличие такого же логина в бд
@@ -87,17 +86,23 @@ class Registration
 
     public function Add_User()
     {
+        $flag2=false;
         $this->db = new Database();
        /* echo" check <br>";
         var_dump($this->local_data);*/
         $this->db->Add_User($this->local_data);
+        if (empty($this->db->Get_Errors())) { # если наконец-то все правильно ввели даем добро на регистрацию
 
-       /* unset($this->local_data);
-        echo" check2 <br>";
-        var_dump($this->local_data);*/
-
-        $this->db->Close();
-
+            $flag2=true;
+            echo "Ура, успешно зарегестрированы. Скоро здесь будет редирект";
+            unset($this->local_data);
+            $this->db->Close();
+        }
+        else
+            {
+                $this->errors+= $this->db->Get_Errors();
+            }
+        return ($flag2);
     }
 
 }
