@@ -3,23 +3,24 @@
 /**
  * Created by PhpStorm.
  * User: Asus
- * Date: 30.11.2016
- * Time: 0:39
+ * Date: 02.12.2016
+ * Time: 15:01
  */
 require_once 'Database.php';
 
-class Registration
+class Entry
 {
     private $local_data, $errors;
     private $db;
 
     public function __construct(array $data)
     {
-            $this->local_data = $data;
-            $this->errors = array(); # проверим на пользовательские ошибки. Если они есть положим в этот массив
+        $this->local_data = $data;
+        $this->errors = array(); # проверим на пользовательские ошибки. Если они есть положим в этот массив
+        #unset($data);
     }
 
-    public function Check_Data()
+    final public function Check_Data()
     {
         $flag = false;
         $this->Check_Username(); # чекаем логин
@@ -27,14 +28,13 @@ class Registration
         if (empty($this->errors)) { # если наконец-то все правильно ввели даем добро на регистрацию
 
             $this->local_data['password']=password_hash($this->local_data['password'], PASSWORD_DEFAULT);
-            unset($this->local_data['password_repeat']);
             $flag = true;
 
         }
         return ($flag);
     }
 
-    private function Check_Username() # можно добавить проверку на наличие такого же логина в бд
+    final protected function Check_Username() # можно добавить проверку на наличие такого же логина в бд
     {
         if (trim($this->local_data['username']) == '') # trim-функция, обрезающая лишние пробелы
         {
@@ -43,52 +43,44 @@ class Registration
         }
     }
 
-    private function Check_Password() # можно заставлять юзера придумывать пароль посложнее
+    protected function Check_Password()
     {
         if (trim($this->local_data['password']) == '') {
             $this->local_data['password'] = '';
-            $this->local_data['password_repeat'] = '';
             $this->errors[] = "Введите пароль!";
-        }
-        if ($this->local_data['password'] != $this->local_data['password_repeat']) {
-            $this->errors[] = "Пароли не совпадают!";
+        } else {
+            $this->local_data['password'] = password_hash($this->local_data['password'], PASSWORD_DEFAULT);
         }
     }
 
-   public function Get_Username()
+    public function Get_Login()
     {
-        return ($this->local_data['username']);
-    }
-
-    public function Get_EMail()
-    {
-        return ($this->local_data['mail']);
+        return $this->local_data['username'];
     }
 
     public function Get_Errors()
     { # из всего массива ошибок выводит на экран только первую ошибку, поясняющую, что нужно исправить
-        return (array_shift($this->errors));
+        return $this->errors;
     }
 
-    public function Add_User()
+    final public function LOGIN_User()
     {
-        $flag=false;
+        echo "я работаю";
+        $flag = false;
         $this->db = new Database();
-       /* echo" check <br>";
-        var_dump($this->local_data);*/
-        $this->db->Add_User($this->local_data);
+        $this->db->Check_login($this->local_data);
+        var_dump( "here",$this->db->Check_login($this->local_data));
         if (empty($this->db->Get_Errors())) { # если наконец-то все правильно ввели даем добро на регистрацию
 
-            $flag=true;
-            echo "Ура, успешно зарегестрированы. Скоро здесь будет редирект";
+            $flag = true;
+            echo "Ура, успешно авторизованы. Скоро здесь будет редирект";
             unset($this->local_data);
             $this->db->Close();
+        } else {
+            $this->errors += $this->db->Get_Errors();
         }
-        else
-            {
-                $this->errors+= $this->db->Get_Errors();
-            }
         return ($flag);
     }
+
 
 }

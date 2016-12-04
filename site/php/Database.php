@@ -84,8 +84,7 @@ class Database
 
     public  function Check_login(array $data)
     {
-        $flag=false;
-
+        $res=0;
         # подготовка запроса
         # mysql> SELECT * FROM [table name] WHERE [field name] = "whatever"
         $stmt = $this->conn->prepare("SELECT * FROM users WHERE login=? and pass=? ");
@@ -98,12 +97,11 @@ class Database
         {
             $this->db_errors[] = "ошибка выполнения запроса" . $stmt->errno . " " . $stmt->error;
         } else {
-
-            $flag=true;
             $stmt->store_result();# сохраняем результаты
+            $res = $stmt->num_rows; # считаем количество строчек, найденных при запросе
             $stmt->close(); # закрываем запрос
         }
-        return $flag;
+        return $res;
 
     }
 

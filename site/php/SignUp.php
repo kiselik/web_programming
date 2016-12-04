@@ -15,14 +15,19 @@ require_once "Registration.php";
 $data = new Registration($_POST);
 if (isset($_POST['do_signup'])) # если клавиша "зарегестрировать была нажата, то проведем процесс регистрации
 {
-    if (!$data->Check_Data() &&(!$data->Add_User())) { # проверяем, корректны ли введены данные, если да, то повезло, работаем дальше
+
+    if ((!$data->Check_Data()) ||(!$data->Add_User())) { # проверяем, корректны ли введены данные, если да, то повезло, работаем дальше
         # посмотрим первую замеченную ошибку
         echo '<h1>' . $data->Get_Errors() . '</h1>';
     }
+    else
+        {
+            $SESSION_START=
+        }
 }
 ?>
 <h2>Ура! пора регистрироваться</h2>
-<form method="post" action="site/php/SignUp.php" id="LOGIN">
+<form method="post" action="site/php/SignUp.php" id="UpSign">
     <fieldset> <!-- заставим форму выглядеть как блок-->
         <strong>Логин: </strong>
         <input type="text" name="username" required value="<?php
