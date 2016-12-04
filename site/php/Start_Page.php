@@ -13,11 +13,14 @@ session_start();
 ?>
 
 <?php if (isset($_SESSION['user'])):?>
-Авторизован!
-<php else :?>
+    Привет, <?php echo $_SESSION['user']; ?> !
+    </h1><a href="site/php/LogOut.php">Log OUT</a></h1>
+<?php else:?>
 <h1><a href="site/php/SignUp.php">Sign Up</a><br>
     <a href="site/php/LogIn.php">Log In</a></h1>
-    <?php endif; ?>
+<?php endif ;?>
+
+
 </body>
 </html>
 

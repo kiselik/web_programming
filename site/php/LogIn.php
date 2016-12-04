@@ -11,7 +11,7 @@
 <?php
 
 require_once "../classes/Entry.php";
-
+session_start();
 
 $data_lg = new Entry($_POST);
 if (isset($_POST['do_login'])) # если клавиша "зарегестрировать была нажата, то проведем процесс регистрации
@@ -25,9 +25,10 @@ if (isset($_POST['do_login'])) # если клавиша "зарегестрир
     }
     else
         {
-            session_start();
+
             $_SESSION['user']=$data_lg->Get_Login();
-            echo '<h1> Вы авторизованы!<br> Можете перейти на <a href="site/php/Start_Page.php"> главную</a> страницу</h1>';
+            header('Location: Start_Page.php');
+            # echo '<h1> Вы авторизованы!<br> Можете перейти на <a href="site/php/Start_Page.php"> главную</a> страницу</h1>';
 
         }
 }
