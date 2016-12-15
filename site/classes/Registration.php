@@ -21,6 +21,44 @@ class Registration
         }
     }
 
+    public function Get_Username()
+    {
+        return ($this->local_data['username']);
+    }
+
+    public function Get_EMail()
+    {
+        return ($this->local_data['mail']);
+    }
+
+    public function Get_Errors()
+    { # из всего массива ошибок выводит на экран только первую ошибку, поясняющую, что нужно исправить
+        return (array_shift($this->errors));
+    }
+
+    final public function Add_User()
+    {
+        $flag = false;
+# если данные ведены корректно
+        if ($this->Check_Data()) {
+
+            # начинаем работу с бд
+            $this->db = new Database();
+            #  вызываем метод добавления юзера
+            $this->db->Add_User($this->local_data);
+            # если в этом процессе не нашлось ошибок, то класс, пишем поздавляшки
+            if (empty($this->db->Get_Errors())) { # если наконец-то все правильно ввели даем добро на регистрацию
+
+                $flag = true;
+                unset($this->local_data);
+                $this->db->Close();
+            } else { # если нет, то выводим сообщеньку
+                $this->errors += $this->db->Get_Errors();
+            }
+        }
+        return ($flag);
+    }
+
     private function Check_Data()
     {
         $flag = false;
@@ -55,44 +93,6 @@ class Registration
         if ($this->local_data['password'] != $this->local_data['password_repeat']) {
             $this->errors[] = "Пароли не совпадают!";
         }
-    }
-
-    public function Get_Username()
-    {
-        return ($this->local_data['username']);
-    }
-
-    public function Get_EMail()
-    {
-        return ($this->local_data['mail']);
-    }
-
-    public function Get_Errors()
-    { # из всего массива ошибок выводит на экран только первую ошибку, поясняющую, что нужно исправить
-        return (array_shift($this->errors));
-    }
-
-   final public function Add_User()
-    {
-        $flag = false;
-# если данные ведены корректно
-        if ($this->Check_Data()) {
-
-            # начинаем работу с бд
-            $this->db = new Database();
-            #  вызываем метод добавления юзера
-            $this->db->Add_User($this->local_data);
-            # если в этом процессе не нашлось ошибок, то класс, пишем поздавляшки
-            if (empty($this->db->Get_Errors())) { # если наконец-то все правильно ввели даем добро на регистрацию
-
-                $flag = true;
-                unset($this->local_data);
-                $this->db->Close();
-            } else { # если нет, то выводим сообщеньку
-                $this->errors += $this->db->Get_Errors();
-            }
-        }
-        return ($flag);
     }
 
 }

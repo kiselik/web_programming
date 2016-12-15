@@ -28,10 +28,38 @@ class Database
         if (!$this->conn) die($this->errors = 'Ошибка соединения с MYSQL: ошибка № ' . $this->conn->connect_errno . " " . $this->conn->connect_errno);
     }
 
-    public function Add_User(array $data)
+    final public function Check_username(string $login)
+    {
+        # подготовка запроса
+        # mysql> SELECT * FROM [table name] WHERE [field name] = "whatever"
+        $stmt = $this->conn->prepare("SELECT * FROM users WHERE login=? ");
+
+        # вторая стадия: привязка параметров
+        $stmt->bind_param('s', $login);
+
+        # выполнение запроса
+        if (!$stmt->execute()) # выполняем запрос
+        {
+            $this->db_errors[] = "ошибка выполнения запроса" . $stmt->errno . " " . $stmt->error;
+        } else {
+
+            $stmt->store_result();# сохраняем результаты
+
+            # Определить переменные для записи результата
+            $stmt->bind_result($this->result_data['count'],$this->result_data['name'],$this->result_data['password']);
+
+            # получить найденные значения
+            $stmt->fetch();
+
+            # закрываем запрос
+            $stmt->close();
+        }
+    }
+
+    final public function Add_User(array $data)
     {
         # проверяем, есть ли в бд такой логин
-        $flag = $this->Check_username($data['username']);
+        $this->Check_username($data['username']);
 
         # если количество найденных в бд записей с выбранным логином ноль, т.е. такого пользователя еще нет...
         if (!$this->result_data['count']) {
@@ -58,14 +86,16 @@ class Database
 
     }
 
-    final public function Check_username(string $login)
+
+
+    final private  function Check_friend(string $name)
     {
         # подготовка запроса
         # mysql> SELECT * FROM [table name] WHERE [field name] = "whatever"
-        $stmt = $this->conn->prepare("SELECT * FROM users WHERE login=? ");
+        $stmt = $this->conn->prepare("SELECT * FROM friends WHERE name=? ");
 
         # вторая стадия: привязка параметров
-        $stmt->bind_param('s', $login);
+        $stmt->bind_param('s',$name);
 
         # выполнение запроса
         if (!$stmt->execute()) # выполняем запрос
@@ -76,7 +106,7 @@ class Database
             $stmt->store_result();# сохраняем результаты
 
             # Определить переменные для записи результата
-            $stmt->bind_result($this->result_data['count'],$this->result_data['username'],$this->result_data['password']);
+            $stmt->bind_result($this->result_data['count'],$this->result_data['owner'],$this->result_data['name'],$this->result_data['day'],$this->result_data['month'],$this->result_data['year']);
 
             # получить найденные значения
             $stmt->fetch();
@@ -86,10 +116,45 @@ class Database
         }
     }
 
+
+
+    final public function Add_Friend(array $data, string $owner)
+    {
+        var_dump($data,$owner);
+
+        # проверяем, есть ли в бд такой логин
+       $this->Check_friend($data['username']);
+        var_dump($this->result_data['count']);
+        # если количество найденных в бд записей с выбранным логином ноль, т.е. такого пользователя еще нет...
+        if (!$this->result_data['count']) {
+            # вставим его в бд
+            # подготовка запроса
+            $stmt = $this->conn->prepare("INSERT INTO friends (Owner,name,day,month,year) VALUES (?,?,?,?,?)");
+
+            # вторая стадия: привязка параметров
+            $stmt->bind_param('sssss', $owner, $data['username'],$data['day'],$data['month'],$data['year']);
+
+            # выполнение запроса
+            if (!$stmt->execute()) # выполняем запрос
+            {
+                $this->db_errors[] = "ошибка" . $stmt->errno . " " . $stmt->error;
+            } else {
+                echo "Ш фь руку";
+                $stmt->store_result();# сохраняем результаты
+                $stmt->close(); # закрываем запрос
+            }
+        } else {
+
+            $this->db_errors[] = "Такое имя уже существует! Для изменения даты рождения вы можете перейти в раздел \"редактировать\"";
+        }
+
+    }
+
     public  function Get_Password_SQL()
     {
         return($this->result_data['password']);
     }
+
     public  function Get_Count_SQL()
     {
         return($this->result_data['count']);
