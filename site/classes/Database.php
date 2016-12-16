@@ -8,7 +8,7 @@
  */
 class Database
 {
-    private $local_opt, $conn, $db_errors, $result_data;
+    private $local_opt, $conn, $db_errors, $result_data,$result_str;
     private $defaults = array(
         'host' => 'localhost',
         'user' => 'root',
@@ -22,7 +22,7 @@ class Database
 
         $this->db_errors = array();
         $this->result_data = array();
-
+        $this->result_str=array();
         @$this->conn = new mysqli($this->local_opt['host'], $this->local_opt['user'], $this->local_opt['pass'], $this->local_opt['db']);
 
         if (!$this->conn) die($this->errors = 'Ошибка соединения с MYSQL: ошибка № ' . $this->conn->connect_errno . " " . $this->conn->connect_errno);
@@ -116,6 +116,7 @@ class Database
     final public function Show_Friends(string $owner)
     {
         $flag = false;
+        unset($this->result_str);
         $this->Check_username($owner);
         # подготовка запроса
         # mysql> SELECT * FROM [table name] WHERE [field name] = "whatever"
@@ -136,7 +137,7 @@ class Database
 
             # получить найденные значения
             while ($stmt->fetch()) {
-                echo " $name " . "$day " . "$month " . "$year<br>";
+                $this->result_str[]="$name " . "$day " . "$month " . "$year<br>";
             }
         }
         # закрываем запрос
@@ -148,6 +149,7 @@ class Database
     final public function Show_Month(string $owner, string $month)
     {
         $flag = false;
+        unset($this->result_str);
         $this->Check_username($owner);
         # подготовка запроса
         # mysql> SELECT * FROM [table name] WHERE [field name] = "whatever"
@@ -169,8 +171,9 @@ class Database
 
             # получить найденные значения
             while ($stmt->fetch()) {
-                echo " $name " . "$day " . "$month " . "$year<br>";
+                $this->result_str[]=" $name " . "$day " . "$month " . "$year<br>";
             }
+            
         }
         # закрываем запрос
         $stmt->close();
@@ -180,6 +183,7 @@ class Database
     // показать всех, у кого сегодня  или завтра день рождения
     final public function Show_day(string $owner, string $day)
     {
+        unset($this->result_str);
         $flag = false;
         $this->Check_username($owner);
         # подготовка запроса
@@ -199,10 +203,11 @@ class Database
 
             # Определить переменные для записи результата
             $stmt->bind_result($id, $owner, $name, $day, $month, $year);
-
             # получить найденные значения
             while ($stmt->fetch()) {
-                echo " $name " . "$day " . "$month " . "$year<br>";
+                #echo "I am here";
+                $this->result_str[]=" $name " . "$day " . "$month " . "$year<br>";
+                #var_dump($name, $day, $month, $year);
             }
         }
         # закрываем запрос
@@ -221,6 +226,11 @@ class Database
         {
             return ($this->result_data['count']);
         }*/
+    public function Show_Result()
+    {
+
+        return ($this->result_str);
+    }
 
     //получить весь массив ошибок
     public function Get_Errors()

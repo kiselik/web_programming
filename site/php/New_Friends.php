@@ -17,9 +17,9 @@ echo "Привет, " . $_SESSION['user'] . "!";
 ?>
 
 <h2> Какой сегодня день? Что нового?</h2>
-<form method="get" action="site/php/New_Friends.php" id="ADD">
+<form method="get" action="site/php/New_Friends.php" id="SHOW">
     <button type="submit" name="do_show_month"> Дни рождения этого месяца</button>
-    <button type="submit" name="do_show_day"> Дни рождения завтра</button>
+    <button type="submit" name="do_show_day"> Ближайшие дни рождения </button>
     <br><br>
 </form>
 <!-- если решили посмотреть у кого в ближайший месяц др -->
@@ -27,6 +27,9 @@ echo "Привет, " . $_SESSION['user'] . "!";
 if (isset($_GET['do_show_month'])) {
     $show = new Database($_GET);
     if ($show->Show_Month($_SESSION['user'], date("m"))) {
+        foreach ($show->Show_Result() as $value)
+            echo $value;
+        echo"<br>";
         unset($_GET['do_show_month']);
     } else {
         echo '<h3>' . $show->Show_Errors() . '</h3>';
@@ -35,21 +38,28 @@ if (isset($_GET['do_show_month'])) {
 ?>
 <!-- если решили посмотреть у кого сегодня либо завтра др -->
 <?php
-if (isset($_GET['do_show_month'])) {
-    $show = new Database($_GET);
+if (isset($_GET['do_show_day'])) {
+    $show_day = new Database($_GET);
     // на сегодня
-    if ($show->Show_day($_SESSION['user'], date("d"))) {
-        echo "Ура, получилось!";
-        unset($_GET['do_show_month']);
+
+    if ($show_day->Show_day($_SESSION['user'], date("d"))) {
+        echo "Не забудь сегодня позвонить и поздравить:  <br>";
+        foreach ($show_day->Show_Result() as $value)
+        echo $value;
+        echo"<br>";
     } else {
-        echo '<h3>' . $show->Show_Errors() . '</h3>';
+        echo '<h3>' . $show_day->Show_Errors() . '</h3>';
+
     }
     // на завтра
-    if ($show->Show_day($_SESSION['user'], date("d+1"))) {
-        echo "Ура, получилось!";
-        unset($_GET['do_show_month']);
+    if ($show_day->Show_day($_SESSION['user'], date("d")+1)) {
+        echo "А завтра звякнуть:  <br>";
+        foreach ($show_day->Show_Result() as $value)
+            echo $value;
+        echo"<br>";
+        unset($_GET['do_show_day']);
     } else {
-        echo '<h3>' . $show->Show_Errors() . '</h3>';
+        echo '<h3>' . $show_day->Show_Errors() . '</h3>';
     }
 
 }
@@ -80,7 +90,8 @@ if (isset($_POST['do_friends'])) {
 if (isset($_GET['do_show'])) {
     $show = new Database($_GET);
     if ($show->Show_Friends($_SESSION['user'])) {
-        echo "Ура, получилось!";
+        foreach ($show->Show_Result() as $value)
+            echo $value;;
         unset($_GET['do_show']);
     } else {
         echo '<h3>' . $show->Show_Errors() . '</h3>';
