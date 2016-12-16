@@ -7,21 +7,19 @@
  * Time: 22:28
  */
 require_once "Database.php";
+
 class Friends
 {
     private $local_data;
-    private $db;
+    private $db, $errors;
 
     public function __construct(array $data)
     {
         $this->local_data = array();
+        $this->errors = array();
         $this->local_data = $data;
         unset($this->local_data['birthday']);
         $this->pars_str($data['birthday']);
-        /*var_dump($this->local_data);
-        echo date("d m ");*/
-
-
     }
 
     private function pars_str(string $tmp)
@@ -30,11 +28,43 @@ class Friends
         $this->local_data['month'] = substr($tmp, 5, 2);
         $this->local_data['day'] = substr($tmp, 8, 2);
     }
+
     public function Add_Friend(string $owner)
     {
-        $this->db=new Database();
+        $flag = false;
+        $this->db = new Database();
+        //пытаемся добавить, если все хорошо
         $this->db->Add_Friend($this->local_data, $owner);
+        if (empty($this->db->Get_Errors())) {
+            $flag = true;
+            $this->db->Close();
+        } else {
+            $this->errors = $this->db->Get_Errors();
+        }
+        return $flag;
 
+    }
+
+    public function Show_Friends(string $owner)
+    {
+        $flag = false;
+        $this->db = new Database();
+        //пытаемся добавить, если все хорошо
+
+        $this->db->Show_Friends($owner);
+        if (empty($this->db->Get_Errors())) {
+            $flag = true;
+            $this->db->Close();
+        } else {
+            $this->errors = $this->db->Get_Errors();
+        }
+        return $flag;
+
+    }
+
+    public function Get_Errors()
+    {
+        return ($this->errors[0]);
     }
 
 }
