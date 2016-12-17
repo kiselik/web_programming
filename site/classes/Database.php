@@ -228,7 +228,9 @@ class Database
         }*/
     public function Show_Result()
     {
-
+        //var_dump(empty($this->result_str));
+        if(empty($this->result_str))
+            return $flag=false;
         return ($this->result_str);
     }
 
